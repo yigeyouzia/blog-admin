@@ -12,7 +12,7 @@
         <!-- 图片 -->
         <Cover :cover="row.cover"></Cover>
       </template>
-      <template #op="{ row }">
+      <template #op="{ index, row }">
         <div class="op">
           <a
             href="javascript:void(0)"
@@ -21,11 +21,24 @@
             >修改</a
           >
           <el-divider direction="vertical" />
-          <a href="javascript:void(0)" class="a-link">删除</a>
+          <a href="javascript:void(0)" class="a-link" @click="del(row)">删除</a>
           <el-divider direction="vertical" />
-          <a href="javascript:void(0)" class="a-link">上移</a>
+          <!-- 如果是第一个 不能上移 not-allow -->
+          <a
+            href="javascript:void(0)"
+            :class="[index == 0 ? 'not-allow' : 'a-link']"
+            @click="changeSort(index, 'up')"
+            >上移</a
+          >
           <el-divider direction="vertical" />
-          <a href="javascript:void(0)" class="a-link">下移</a>
+          <a
+            href="javascript:void(0)"
+            :class="[
+              index == tableData.list.length - 1 ? 'not-allow' : 'a-link',
+            ]"
+            @click="changeSort(index, 'down')"
+            >下移</a
+          >
         </div>
       </template>
     </Table>
@@ -72,6 +85,7 @@ const api = {
   loadDataList: "/category/loadAllCategory4Blog",
   saveCategory: "/category/saveCategory4Blog",
   delCategory: "/category/delCategory4Blog",
+  changeSort: "/category/changeCategorySort4Blog",
 };
 
 const columns = [
@@ -174,7 +188,47 @@ const submitForm = () => {
   });
 };
 // 删除
-const del = () => {};
+const del = (data) => {
+  proxy.Confirm(`你确定要删除${data.categoryName}`, async () => {
+    let result = await proxy.Request({
+      url: api.delCategory,
+      params: {
+        categoryId: data.categoryId,
+      },
+    });
+    if (!result) {
+      return;
+    }
+    loadDataList();
+    proxy.message.success("删除成功");
+  });
+};
+// 排序 上下移
+const changeSort = async (index, dir) => {
+  let categoryList = tableData.list;
+  if (index == 0 && dir == "up") {
+    return;
+  }
+  if (index == tableData.list.length - 1 && dir == "down") {
+    return;
+  }
+  let temp = categoryList[index];
+  let num = dir == "down" ? 1 : -1;
+  categoryList.splice(index, 1); // 先删除 再添加
+  categoryList.splice(index + num, 0, temp); // 临时值塞进
+  console.log(JSON.stringify(categoryList));
+
+  let result = await proxy.Request({
+    url: api.changeSort,
+    dataType: "json",
+    params: categoryList,
+  });
+  if (!result) {
+    return;
+  }
+  proxy.message.success("排列成功");
+  loadDataList();
+};
 </script>
 
 <style lang="scss" scoped>

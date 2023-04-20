@@ -1,3 +1,4 @@
+import { ElMessageBox } from "element-plus"
 const confirm = (message, okfun) => {
     ElMessageBox.confirm(message, '提示',
         {
@@ -8,8 +9,6 @@ const confirm = (message, okfun) => {
     ).then(() => {
         okfun()
     }).catch(() => {
-        ElMessage({
-        })
     })
 }
 
