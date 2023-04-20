@@ -1,0 +1,181 @@
+<template>
+  <div>
+    <el-button type="danger" @click="showEdict('add')">新增分类</el-button>
+    <Table
+      :columns="columns"
+      :showPagination="false"
+      :dataSource="tableData"
+      :fetch="loadDataList"
+      :options="tableOptions"
+    >
+      <template #cover="{ row }">
+        <!-- 图片 -->
+        <Cover :cover="row.cover"></Cover>
+      </template>
+      <template #op="{ row }">
+        <div class="op">
+          <a
+            href="javascript:void(0)"
+            class="a-link"
+            @click="showEdict('update', row)"
+            >修改</a
+          >
+          <el-divider direction="vertical" />
+          <a href="javascript:void(0)" class="a-link">删除</a>
+          <el-divider direction="vertical" />
+          <a href="javascript:void(0)" class="a-link">上移</a>
+          <el-divider direction="vertical" />
+          <a href="javascript:void(0)" class="a-link">下移</a>
+        </div>
+      </template>
+    </Table>
+    <!-- form -->
+    <Dialog
+      :show="dialogConfig.show"
+      :title="dialogConfig.title"
+      :buttons="dialogConfig.buttons"
+      width="500px"
+    >
+      <el-form
+        :model="formData"
+        :rules="rules"
+        ref="formDataRef"
+        label-width="80px"
+      >
+        <el-form-item prop="categoryName" label="名称">
+          <el-input placeholder="请输入名称" v-model="formData.categoryName">
+          </el-input>
+        </el-form-item>
+        <!-- 文件上传 -->
+        <el-form-item prop="cover" label="封面">
+          <CoverUpload v-model="formData.cover"></CoverUpload>
+        </el-form-item>
+        <el-form-item label="简介" prop="categoryDesc">
+          <el-input
+            placeholder="请输入简介"
+            v-model="formData.categoryDesc"
+            type="textarea"
+            :autosize="{ minRows: 4, maxRows: 4 }"
+          >
+          </el-input>
+        </el-form-item>
+      </el-form>
+    </Dialog>
+  </div>
+</template>
+
+<script setup>
+import { getCurrentInstance, nextTick, reactive, ref } from "vue";
+const { proxy } = getCurrentInstance();
+
+const api = {
+  loadDataList: "/category/loadAllCategory4Blog",
+  saveCategory: "/category/saveCategory4Blog",
+  delCategory: "/category/delCategory4Blog",
+};
+
+const columns = [
+  {
+    label: "封面",
+    prop: "cover",
+    width: 100,
+    scopedSlots: "cover",
+  },
+  {
+    label: "名称",
+    prop: "categoryName",
+    width: 200,
+  },
+  {
+    label: "简介",
+    prop: "categoryDesc",
+  },
+  {
+    label: "博客数量",
+    prop: "blogCount",
+    width: 100,
+  },
+  {
+    label: "操作",
+    prop: "op",
+    width: 200,
+    scopedSlots: "op",
+  },
+];
+
+const tableData = reactive({});
+const tableOptions = {
+  exHeight: 0,
+};
+const loadDataList = async () => {
+  let result = await proxy.Request({
+    url: api.loadDataList,
+  });
+  if (!result) {
+    return;
+  }
+  //   console.log(result);
+  tableData.list = result.data;
+};
+
+// 新增 修改
+const dialogConfig = reactive({
+  show: false,
+  title: "标题",
+  buttons: [
+    {
+      type: "danger",
+      text: "确定",
+      click: (e) => {
+        submitForm();
+      },
+    },
+  ],
+});
+const formData = reactive({});
+const rules = {
+  categoryName: [{ required: true, message: "请输入分类名称" }],
+};
+const formDataRef = ref();
+
+// 打开展示表单
+const showEdict = (type, data) => {
+  dialogConfig.show = !dialogConfig.show;
+  // 等待窗口弹出再改数据
+  nextTick(() => {
+    if (type == "add") {
+      dialogConfig.title = "新增分类";
+      formDataRef.value.resetFields(); // form组件 清空表单
+    } else if (type == "update") {
+      // console.log(data);
+      dialogConfig.title = "编辑分类";
+      Object.assign(formData, data); // 表单数据为该行
+    }
+  });
+};
+// 上传表单
+const submitForm = () => {
+  formDataRef.value.validate(async (valid) => {
+    if (!valid) {
+      return;
+    }
+    let params = {};
+    Object.assign(params, formData);
+    let result = await proxy.Request({
+      url: api.saveCategory,
+      params: params,
+    });
+    if (!result) {
+      return;
+    }
+    dialogConfig.show = false;
+    proxy.message.success("保存成功");
+    loadDataList();
+  });
+};
+// 删除
+const del = () => {};
+</script>
+
+<style lang="scss" scoped>
+</style>
