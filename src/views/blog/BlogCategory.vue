@@ -119,7 +119,7 @@ const columns = [
 
 const tableData = reactive({});
 const tableOptions = {
-  exHeight: 0,
+  exHeight: 10,
 };
 const loadDataList = async () => {
   let result = await proxy.Request({
@@ -166,6 +166,10 @@ const showEdict = (type, data) => {
       Object.assign(formData, data); // 表单数据为该行
     }
   });
+};
+const emit = defineEmits(["close"]);
+const close = () => {
+  emit("close");
 };
 // 上传表单
 const submitForm = () => {

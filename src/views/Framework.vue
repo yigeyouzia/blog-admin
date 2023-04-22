@@ -276,7 +276,9 @@ watch(
       }
     }
     .right-main {
+      position: relative;
       background: #fff;
+      padding: 20px 10px 10px 10px;
     }
   }
 }

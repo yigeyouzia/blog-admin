@@ -18,7 +18,7 @@
       <!-- 弹框下的按钮 -->
       <template v-if="(buttons && buttons.length > 0) || showCancel">
         <div class="dialog-footer">
-          <el-button link @click="close"> 取消 </el-button>
+          <el-button link @click="show = !show"> 取消 </el-button>
           <el-button
             v-for="(btn, index) in buttons"
             :type="btn.type"
@@ -65,6 +65,7 @@ const props = defineProps({
 
 const emit = defineEmits();
 const close = () => {
+  console.log("1");
   emit("close");
 };
 </script>
