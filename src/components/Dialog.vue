@@ -62,7 +62,10 @@ const props = defineProps({
     type: Array,
   },
 });
-
+// const closeDialog = () => {
+//   console.log("12");
+//   props.show = false;
+// };
 const emit = defineEmits();
 const close = () => {
   console.log("1");
@@ -86,4 +89,4 @@ const close = () => {
     padding: 5px 20px;
   }
 }
-</style>
+</style> 

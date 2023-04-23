@@ -7,13 +7,13 @@
       :buttons="windowConfig.buttons"
       @close="closeWindow"
     >
-      <el-form :model="formData" ref="formDateRef" :rules="rules">
+      <el-form :model="blogFormData" ref="blogFormRef" :rules="rules">
         <el-form-item prop="title">
           <!-- 套一层重写input框样式 -->
           <div class="title-input">
             <el-input
               placeholder="请输入博客标题"
-              v-model="formData.title"
+              v-model="blogFormData.title"
             ></el-input>
           </div>
         </el-form-item>
@@ -22,7 +22,8 @@
           <div :style="{ width: '100%' }">
             <EditorMarkdown
               :height="editorMDHeight"
-              v-model="formData.markdownContent"
+              v-model="blogFormData.markdownContent"
+              @htmlContent="setHtmlContent"
             ></EditorMarkdown>
           </div>
         </el-form-item>
@@ -38,7 +39,7 @@
         <el-form
           :model="settingsformData"
           :rules="rules"
-          ref="formDataRef"
+          ref="settingsFormRef"
           label-width="80px"
           class="blog-setting-form"
         >
@@ -72,7 +73,7 @@
           </el-form-item>
           <!-- 地址 -->
           <el-form-item
-            prop="type"
+            prop="reprintUrl"
             label="原文地址"
             v-if="settingsformData.type == 0"
           >
@@ -146,10 +147,15 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick, getCurrentInstance } from "vue";
+import { ref, reactive, nextTick, getCurrentInstance, onMounted } from "vue";
 const { proxy } = getCurrentInstance();
 const editorMDHeight = window.innerHeight - 60 - 20 - 30 - 50 - 10 - 70;
 const editorHTMLHeight = window.innerHeight - 60 - 20 - 30 - 50 - 100 - 70;
+
+const api = {
+  loadDataList: "/category/loadAllCategory4Blog",
+  saveBlog: "/blog/saveBlog",
+};
 // 新增修改弹框
 const windowConfig = reactive({
   show: true,
@@ -172,11 +178,33 @@ const showEdit = (type, data) => {
   windowConfig.show = true;
 };
 
-// markdown 表单
-const formData = ref({});
-const rules = {};
+// 1.markdown 博客正文
+const blogFormRef = ref();
+const blogFormData = ref({}); // 博客数据
+// markdown编辑器设置html内容
+const setHtmlContent = (htmlContent) => {
+  blogFormData.value.content = htmlContent;
+};
+// 展示配置弹框
+const showSettings = () => {
+  blogFormRef.value.validate(async (valid) => {
+    if (!valid) {
+      return;
+    }
+    dialogConfig.show = !dialogConfig.show;
+  });
+  // console.log(dialogConfig.show);
+};
+const rules = {
+  title: [{ required: true, message: "请选择文章标题" }],
+  markdownContent: [{ required: true, message: "请选择文章内容" }],
+  categoryId: [{ required: true, message: "请选择博客分类" }],
+  cover: [{ required: true, message: "请选择博客类型" }],
+  reprintUrl: [{ required: true, message: "请输入原文地址" }],
+  allowcomment: [{ required: true, message: "请选择是否允许评论" }],
+};
 
-// 弹框 提交新增博客
+// 2.配置弹框 提交新增博客
 const dialogConfig = reactive({
   show: true,
   title: "标题",
@@ -184,23 +212,36 @@ const dialogConfig = reactive({
     {
       type: "danger",
       text: "确定",
-      click: (e) => {},
+      click: (e) => {
+        // 提交表单
+        submitBlog();
+      },
     },
   ],
 });
-const showSettings = () => {
-  dialogConfig.show = !dialogConfig.show;
-  console.log(dialogConfig.show);
-};
+
 // 博客数据 默认有tag属性
 const settingsformData = ref({ tag: [] });
 const categoryList = ref([]); // 博客分类数据
 
+const loadCategoryList = async () => {
+  let result = await proxy.Request({
+    url: api.loadDataList,
+  });
+  if (!result) {
+    return;
+  }
+  categoryList.value = result.data;
+};
+
+onMounted(() => {
+  loadCategoryList();
+});
 // 标签关闭 并且删除form里的数据
 const showTagInput = ref(false);
 const closeTag = (index) => {
   settingsformData.value.tag.splice(index, 1);
-  console.log(settingsformData.value.tag);
+  // console.log(settingsformData.value.tag);
 };
 // 添加标签
 const showTagInputHandler = () => {
@@ -220,15 +261,49 @@ const saveTagInput = () => {
   }
   tagInputValue.value = undefined; // 清空input值
 };
+
+// 提交表单
+const settingsFormRef = ref();
+const submitBlog = () => {
+  settingsFormRef.value.validate(async (valid) => {
+    if (!valid) {
+      return;
+    }
+    // let params = {
+    //   blogId: blogFormData.blogId,
+    //   title: blogFormData.title,
+    //   markdownContent: blogFormData.markdownContent,
+    //   content: blogFormData.content,
+    //   editorType: 1,
+    // };
+    let params = {};
+    Object.assign(params, blogFormData.value);
+    Object.assign(params, settingsformData.value);
+    let result = await proxy.Request({
+      url: api.saveBlog,
+      params,
+    });
+    if (!result) {
+      return;
+    }
+    // dialogConfig.show = false;
+    proxy.message.success("博客保存成功");
+    // loadDataList();
+  });
+};
 </script>
 
 <style lang="scss">
+.el-form-item.is-error .el-input__wrapper {
+  box-shadow: none;
+}
 .title-input {
   width: 100%;
   border-bottom: 1px solid #ddd;
   .el-input__wrapper {
     box-shadow: none;
   }
+
   input {
     font-size: 18px;
   }

@@ -82,7 +82,7 @@ import { getCurrentInstance, nextTick, reactive, ref } from "vue";
 const { proxy } = getCurrentInstance();
 
 const api = {
-  loadDataList: "/category/loadAllCategory4Blog",
+  loadDataList: "/category/loadAllCategory4Blog", // 获取博客分类
   saveCategory: "/category/saveCategory4Blog",
   delCategory: "/category/delCategory4Blog",
   changeSort: "/category/changeCategorySort4Blog",
