@@ -46,7 +46,7 @@
           </el-col>
           <el-col :span="5" :style="{ 'padding-left': '10px' }">
             <el-button type="danger" @click="loadDataList">搜索</el-button>
-            <el-button type="danger" @click="showEdit('add')"
+            <el-button type="danger" @click="showEdict('add')"
               >新增博客</el-button
             >
           </el-col>
@@ -76,8 +76,11 @@
       </template>
       <!-- 文章类型 -->
       <template #typeName="{ row }">
-        <div>{{ row.type == 0 ? "原创" : "转载" }}</div>
-        <div v-if="row.type == 1">转载地址 ：{{ reprintUrl }}</div>
+        <div>
+          类型：<span v-if="row.type == 0">原创</span>
+          <span v-if="row.type == 1">转载</span>
+        </div>
+        <div v-if="row.type == 1">转载地址 ：{{ row.reprintUrl }}</div>
       </template>
       <!-- 文章类型 -->
       <template #statusName="{ row }">
@@ -113,7 +116,7 @@
       </template>
     </Table>
     <!-- 新增博客 -->
-    <BlogEdit></BlogEdit>
+    <BlogEdit ref="blogEditRef" @callBack="loadDataList"></BlogEdit>
   </div>
 </template>
 
@@ -210,6 +213,10 @@ const loadDataList = async () => {
   Object.assign(tableData, result.data);
 };
 // 新增博客
+const blogEditRef = ref(null);
+const showEdict = (type, data) => {
+  blogEditRef.value.init(type, data); // 调用子组件方法
+};
 </script>
 
 <style lang="scss">

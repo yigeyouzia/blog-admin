@@ -10,6 +10,7 @@
       :top="top"
       :width="width"
       :showCancel="showCancel"
+      @close="close"
     >
       <!-- 弹框内容 插槽 -->
       <div class="dialog-body">
@@ -18,7 +19,7 @@
       <!-- 弹框下的按钮 -->
       <template v-if="(buttons && buttons.length > 0) || showCancel">
         <div class="dialog-footer">
-          <el-button link @click="show = !show"> 取消 </el-button>
+          <el-button link @click="close"> 取消 </el-button>
           <el-button
             v-for="(btn, index) in buttons"
             :type="btn.type"
@@ -62,13 +63,9 @@ const props = defineProps({
     type: Array,
   },
 });
-// const closeDialog = () => {
-//   console.log("12");
-//   props.show = false;
-// };
+
 const emit = defineEmits();
 const close = () => {
-  console.log("1");
   emit("close");
 };
 </script>
@@ -89,4 +86,4 @@ const close = () => {
     padding: 5px 20px;
   }
 }
-</style> 
+</style>

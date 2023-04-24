@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-md-editor
-      :v-model="modelValue"
+      :model-value="modelValue"
       :height="height + 'px'"
       :disabled-menus="[]"
       :include-level="[1, 2, 3, 4, 5, 6]"

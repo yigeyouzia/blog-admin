@@ -20,24 +20,30 @@
         <el-form-item prop="markdownContent">
           <!-- 必须套一层 -->
           <div :style="{ width: '100%' }">
+            <EditorHtml
+              v-model="blogFormData.content"
+              :height="editorHTMLHeight"
+              v-if="blogFormData.editorType == 0"
+            ></EditorHtml>
             <EditorMarkdown
-              :height="editorMDHeight"
+              v-else
               v-model="blogFormData.markdownContent"
+              :height="editorMDHeight"
               @htmlContent="setHtmlContent"
             ></EditorMarkdown>
           </div>
         </el-form-item>
       </el-form>
-      <!-- <EditorHtml :height="editorHTMLHeight"></EditorHtml> -->
       <!-- 弹框 -->
       <Dialog
         :show="dialogConfig.show"
         :title="dialogConfig.title"
         :buttons="dialogConfig.buttons"
         width="800px"
+        @close="dialogConfig.show = false"
       >
         <el-form
-          :model="settingsformData"
+          :model="blogFormData"
           :rules="rules"
           ref="settingsFormRef"
           label-width="80px"
@@ -46,7 +52,7 @@
           <!-- 分类 -->
           <el-form-item prop="categoryId" label="博客分类">
             <el-select
-              v-model="settingsformData.categoryId"
+              v-model="blogFormData.categoryId"
               class="m-2"
               clearable
               placeholder="请选择分类"
@@ -62,36 +68,36 @@
           </el-form-item>
           <!-- 文件上传 -->
           <el-form-item prop="cover" label="封面">
-            <CoverUpload v-model="settingsformData.cover"></CoverUpload>
+            <CoverUpload v-model="blogFormData.cover"></CoverUpload>
           </el-form-item>
           <!-- 类型 -->
           <el-form-item prop="type" label="博客类型">
-            <el-radio-group v-model="settingsformData.type">
-              <el-radio :label="1">原创</el-radio>
-              <el-radio :label="0">转载</el-radio>
+            <el-radio-group v-model="blogFormData.type">
+              <el-radio :label="0">原创</el-radio>
+              <el-radio :label="1">转载</el-radio>
             </el-radio-group>
           </el-form-item>
           <!-- 地址 -->
           <el-form-item
             prop="reprintUrl"
             label="原文地址"
-            v-if="settingsformData.type == 0"
+            v-if="blogFormData.type == 1"
           >
             <el-input
               placeholder="请输入原文地址"
-              v-model="settingsformData.reprintUrl"
+              v-model="blogFormData.reprintUrl"
               :autosize="{ minRows: 4, maxRows: 4 }"
             >
             </el-input>
           </el-form-item>
           <!-- 评论 -->
           <el-form-item
-            prop="allowcomment"
+            prop="allowComment"
             label="评论"
-            v-model="settingsformData.type"
+            v-model="blogFormData.type"
           >
             <div class="allow-comment">
-              <el-radio-group v-model="settingsformData.allowcomment">
+              <el-radio-group v-model="blogFormData.allowComment">
                 <el-radio :label="1">允许</el-radio>
                 <el-radio :label="0">不允许</el-radio>
               </el-radio-group>
@@ -104,7 +110,7 @@
           <el-form-item label="简介" prop="summary">
             <el-input
               placeholder="博客摘要"
-              v-model="settingsformData.summary"
+              v-model="blogFormData.summary"
               type="textarea"
               :autosize="{ minRows: 4, maxRows: 4 }"
             >
@@ -115,7 +121,7 @@
             <div class="tag-input-panel">
               <div class="tag-list">
                 <el-tag
-                  v-for="(item, index) in settingsformData.tag"
+                  v-for="(item, index) in blogFormData.tag"
                   :key="index"
                   @close="closeTag(index)"
                   class="tag-item"
@@ -123,7 +129,7 @@
                   >{{ item }}</el-tag
                 >
               </div>
-              <span class="info" v-if="settingsformData.tag.length == 0"
+              <span class="info" v-if="blogFormData.tag.length == 0"
                 >添加标签更容易被搜索引擎收录</span
               >
               <span
@@ -147,7 +153,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick, getCurrentInstance, onMounted } from "vue";
+import {
+  ref,
+  reactive,
+  nextTick,
+  getCurrentInstance,
+  onMounted,
+  onUnmounted,
+} from "vue";
 const { proxy } = getCurrentInstance();
 const editorMDHeight = window.innerHeight - 60 - 20 - 30 - 50 - 10 - 70;
 const editorHTMLHeight = window.innerHeight - 60 - 20 - 30 - 50 - 100 - 70;
@@ -155,11 +168,96 @@ const editorHTMLHeight = window.innerHeight - 60 - 20 - 30 - 50 - 100 - 70;
 const api = {
   loadDataList: "/category/loadAllCategory4Blog",
   saveBlog: "/blog/saveBlog",
+  getUserInfo: "getUserInfo",
+  getBlogDetail: "/blog/getBlogById",
+  autoSave: "/blog/autoSaveBlog",
 };
+const init = (type, data) => {
+  startTimer();
+  windowConfig.show = true; // 打开博客编辑栏
+  nextTick(() => {
+    // blogFormRef.value.resetFields();
+    blogFormData.value = { tag: [] };
+    if (type == "add") {
+      getUserInfo();
+    } else {
+      getBlogDetail(data.blogId);
+    }
+  });
+};
+
+defineExpose({ init });
+
+const getUserInfo = async () => {
+  let result = await proxy.Request({
+    url: api.getUserInfo,
+  });
+  if (!result) {
+    return;
+  }
+  blogFormData.value.editorType = result.data.editorType;
+};
+
+// 根据id获取博客详情
+const getBlogDetail = async (blogId) => {
+  let result = await proxy.Request({
+    url: api.getBlogDetail,
+    params: {
+      blogId: blogId,
+    },
+  });
+  if (!result) {
+    return;
+  }
+  blogFormData.value = result.data;
+  // tag分割|
+  if (result.data.tag) {
+    blogFormData.value.tag = result.data.tag.split("|");
+  } else {
+    blogFormData.value.tag = [];
+  }
+  // console.log(blogFormData.value);
+};
+// 自动保存
+let timmer = ref(null);
+const startTimer = () => {
+  timmer.value = setInterval(() => {
+    autoSave();
+  }, 10000);
+};
+
+const cleanTimer = () => {
+  if (timmer.value !== null) {
+    clearInterval(timmer.value);
+    timmer.value = null;
+  }
+};
+const autoSave = async () => {
+  // 如果标题内容为空  不用保存
+  if (
+    blogFormData.value.title == undefined ||
+    blogFormData.value.content == undefined ||
+    timmer.value == null ||
+    dialogConfig.show
+  ) {
+    return;
+  }
+  const params = {};
+  Object.assign(params, blogFormData.value);
+  let result = await proxy.Request({
+    url: api.autoSave,
+    showLoading: false,
+    params: params,
+  });
+  if (!result) {
+    return;
+  }
+  blogFormData.value.blogId = result.data;
+};
+
 // 新增修改弹框
 const windowConfig = reactive({
-  show: true,
-  title: "标题",
+  show: false,
   buttons: [
     {
       type: "danger",
@@ -170,17 +268,19 @@ const windowConfig = reactive({
     },
   ],
 });
+
+const emit = defineEmits();
 const closeWindow = () => {
   windowConfig.show = false;
-  //   loadDataList();
-};
-const showEdit = (type, data) => {
-  windowConfig.show = true;
+  emit("callBack");
+  if (timmer.value != null) {
+    cleanTimer();
+  }
 };
 
 // 1.markdown 博客正文
 const blogFormRef = ref();
-const blogFormData = ref({}); // 博客数据
+const blogFormData = ref({ tag: [] }); // 博客数据
 // markdown编辑器设置html内容
 const setHtmlContent = (htmlContent) => {
   blogFormData.value.content = htmlContent;
@@ -199,15 +299,15 @@ const rules = {
   title: [{ required: true, message: "请选择文章标题" }],
   markdownContent: [{ required: true, message: "请选择文章内容" }],
   categoryId: [{ required: true, message: "请选择博客分类" }],
-  cover: [{ required: true, message: "请选择博客类型" }],
+  cover: [{ required: true, message: "请选择博客封面" }],
   reprintUrl: [{ required: true, message: "请输入原文地址" }],
-  allowcomment: [{ required: true, message: "请选择是否允许评论" }],
+  allowComment: [{ required: true, message: "请选择是否允许评论" }],
 };
 
 // 2.配置弹框 提交新增博客
 const dialogConfig = reactive({
-  show: true,
-  title: "标题",
+  show: false,
+  title: "博客设置",
   buttons: [
     {
       type: "danger",
@@ -221,7 +321,7 @@ const dialogConfig = reactive({
 });
 
 // 博客数据 默认有tag属性
-const settingsformData = ref({ tag: [] });
+// const blogFormData = ref({ tag: [] });
 const categoryList = ref([]); // 博客分类数据
 
 const loadCategoryList = async () => {
@@ -237,11 +337,14 @@ const loadCategoryList = async () => {
 onMounted(() => {
   loadCategoryList();
 });
+onUnmounted(() => {
+  cleanTimer();
+});
 // 标签关闭 并且删除form里的数据
 const showTagInput = ref(false);
 const closeTag = (index) => {
-  settingsformData.value.tag.splice(index, 1);
-  // console.log(settingsformData.value.tag);
+  blogFormData.value.tag.splice(index, 1);
+  // console.log(blogFormData.value.tag);
 };
 // 添加标签
 const showTagInputHandler = () => {
@@ -253,8 +356,8 @@ const tagInputValue = ref(null);
 const saveTagInput = () => {
   showTagInput.value = false; // input 框关闭
   if (tagInputValue.value) {
-    if (settingsformData.value.tag.indexOf(tagInputValue.value) === -1) {
-      settingsformData.value.tag.push(tagInputValue.value);
+    if (blogFormData.value.tag.indexOf(tagInputValue.value) === -1) {
+      blogFormData.value.tag.push(tagInputValue.value);
     } else {
       proxy.message.warning("重复");
     }
@@ -278,7 +381,9 @@ const submitBlog = () => {
     // };
     let params = {};
     Object.assign(params, blogFormData.value);
-    Object.assign(params, settingsformData.value);
+    // console.log(blogFormData.value);
+    params.tag = params.tag.join("|");
+    // Object.assign(params, blogFormData.value);
     let result = await proxy.Request({
       url: api.saveBlog,
       params,
@@ -288,7 +393,8 @@ const submitBlog = () => {
     }
     // dialogConfig.show = false;
     proxy.message.success("博客保存成功");
-    // loadDataList();
+    closeWindow();
+    emit("callBack");
   });
 };
 </script>

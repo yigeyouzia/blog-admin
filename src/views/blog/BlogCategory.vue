@@ -48,6 +48,7 @@
       :title="dialogConfig.title"
       :buttons="dialogConfig.buttons"
       width="500px"
+      @close="dialogConfig.show = false"
     >
       <el-form
         :model="formData"
@@ -159,7 +160,7 @@ const showEdict = (type, data) => {
   nextTick(() => {
     if (type == "add") {
       dialogConfig.title = "新增分类";
-      formDataRef.value.resetFields(); // form组件 清空表单
+      // formDataRef.value.resetFields(); // form组件 清空表单
     } else if (type == "update") {
       // console.log(data);
       dialogConfig.title = "编辑分类";

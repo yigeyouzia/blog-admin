@@ -1,5 +1,5 @@
 <template>
-  <EditorHtml v-model="markdownContent"></EditorHtml>
+  <editor-markdown v-model="markdownContent"></editor-markdown>
   {{ markdownContent }}
 </template>
 
