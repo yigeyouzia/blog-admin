@@ -94,7 +94,7 @@
         <div>创建时间：{{ row.createTime }}</div>
         <div>更新时间：{{ row.lastUpdateTime }}</div>
       </template>
-      <template #op="{ index, row }">
+      <template #op="{ row }">
         <div class="op">
           <a
             href="javascript:void(0)"
@@ -103,13 +103,15 @@
             >修改</a
           >
           <el-divider direction="vertical" />
-          <a href="javascript:void(0)" class="a-link" @click="del(row)">删除</a>
+          <a href="javascript:void(0)" class="a-link" @click="delBlog(row)"
+            >删除</a
+          >
           <el-divider direction="vertical" />
           <!-- 如果是第一个 不能上移 not-allow -->
           <a
             href="javascript:void(0)"
             class="a-link"
-            @click="changeSort(index, 'up')"
+            @click="showDetail(row.blogId)"
             >预览</a
           >
         </div>
@@ -117,12 +119,14 @@
     </Table>
     <!-- 新增博客 -->
     <BlogEdit ref="blogEditRef" @callBack="loadDataList"></BlogEdit>
+    <BlogDetail ref="blogDetailRef"></BlogDetail>
   </div>
 </template>
 
 <script setup>
 import { getCurrentInstance, reactive, ref } from "vue";
 import BlogEdit from "./BlogEdit.vue";
+import BlogDetail from "./BlogDetail.vue";
 const { proxy } = getCurrentInstance();
 
 const api = {
@@ -216,6 +220,28 @@ const loadDataList = async () => {
 const blogEditRef = ref(null);
 const showEdict = (type, data) => {
   blogEditRef.value.init(type, data); // 调用子组件方法
+};
+// 回收站
+const delBlog = (data) => {
+  proxy.Confirm(`你确定要删除【${data.title}】吗？`, async () => {
+    let result = await proxy.Request({
+      url: api.delBlog,
+      params: {
+        blogId: data.blogId,
+      },
+    });
+    if (!result) {
+      return;
+    }
+    loadDataList();
+    proxy.message.success("删除成功");
+  });
+};
+// 展示详情
+const blogDetailRef = ref(null);
+const showDetail = (blogId) => {
+  // console.log(blogDetailRef.value);
+  blogDetailRef.value.showDetail(blogId);
 };
 </script>
 
