@@ -1,47 +1,54 @@
 <template>
   <div>
     <el-button type="danger" @click="showEdict('add')">新增分类</el-button>
-    <Table
-      :columns="columns"
-      :showPagination="false"
-      :dataSource="tableData"
-      :fetch="loadDataList"
-      :options="tableOptions"
-    >
-      <template #cover="{ row }">
-        <!-- 图片 -->
-        <Cover :cover="row.cover"></Cover>
-      </template>
-      <template #op="{ index, row }">
-        <div class="op">
-          <a
-            href="javascript:void(0)"
-            class="a-link"
-            @click="showEdict('update', row)"
-            >修改</a
+    <el-row :gutter="10" :style="{ 'margin-top': '10px' }">
+      <el-col :span="14">
+        <el-card class="box-card">
+          <template #header>
+            <div class="card-header">
+              <span>专题</span>
+            </div>
+          </template>
+          <Table
+            :columns="columns"
+            :showPagination="true"
+            :dataSource="tableData"
+            :fetch="loadDataList"
+            :options="tableOptions"
           >
-          <el-divider direction="vertical" />
-          <a href="javascript:void(0)" class="a-link" @click="del(row)">删除</a>
-          <el-divider direction="vertical" />
-          <!-- 如果是第一个 不能上移 not-allow -->
-          <a
-            href="javascript:void(0)"
-            :class="[index == 0 ? 'not-allow' : 'a-link']"
-            @click="changeSort(index, 'up')"
-            >上移</a
-          >
-          <el-divider direction="vertical" />
-          <a
-            href="javascript:void(0)"
-            :class="[
-              index == tableData.list.length - 1 ? 'not-allow' : 'a-link',
-            ]"
-            @click="changeSort(index, 'down')"
-            >下移</a
-          >
-        </div>
-      </template>
-    </Table>
+            <template #cover="{ row }">
+              <!-- 图片 -->
+              <Cover :cover="row.cover"></Cover>
+            </template>
+            <template #op="{ row }">
+              <div class="op">
+                <a
+                  href="javascript:void(0)"
+                  class="a-link"
+                  @click="showEdict('update', row)"
+                  >修改</a
+                >
+                <el-divider direction="vertical" />
+                <a href="javascript:void(0)" class="a-link" @click="del(row)"
+                  >删除</a
+                >
+                <el-divider direction="vertical" />
+                <!-- 如果是第一个 不能上移 not-allow -->
+              </div>
+            </template>
+          </Table>
+        </el-card>
+      </el-col>
+      <el-col :span="10">
+        <el-card class="box-card">
+          <template #header>
+            <div class="card-header">
+              <span>专题</span>
+            </div>
+          </template>
+        </el-card>
+      </el-col>
+    </el-row>
     <!-- form -->
     <Dialog
       :show="dialogConfig.show"
@@ -83,10 +90,12 @@ import { getCurrentInstance, nextTick, reactive, ref } from "vue";
 const { proxy } = getCurrentInstance();
 
 const api = {
-  loadDataList: "/category/loadAllCategory4Blog", // 获取博客分类
-  saveCategory: "/category/saveCategory4Blog",
-  delCategory: "/category/delCategory4Blog",
-  changeSort: "/category/changeCategorySort4Blog",
+  loadDataList: "/category/loadCategory4Special",
+  saveCategory: "/category/saveCategory4Special",
+  delCategory: "category/delCategory4Special",
+  getSpecialInfo: "blog/getSpecialInfo",
+  delBlog: "/blog/recoveryBlog",
+  updateSpecialBlogSort: "blog/updateSpecialBlogSort",
 };
 
 const columns = [
@@ -120,7 +129,7 @@ const columns = [
 
 const tableData = reactive({});
 const tableOptions = {
-  exHeight: 10,
+  exHeight: 130,
 };
 const loadDataList = async () => {
   let result = await proxy.Request({
@@ -129,8 +138,8 @@ const loadDataList = async () => {
   if (!result) {
     return;
   }
-  //   console.log(result);
-  tableData.list = result.data;
+  // console.log(result);
+  Object.assign(tableData, result.data);
 };
 
 // 新增 修改
@@ -158,14 +167,14 @@ const showEdict = (type, data) => {
   dialogConfig.show = !dialogConfig.show;
   // 等待窗口弹出再改数据
   nextTick(() => {
-    formDataRef.value.resetFields(); // form组件 清空表单
     if (type == "add") {
-      formData.value = {};
       dialogConfig.title = "新增分类";
+      // formDataRef.value.resetFields(); // form组件 清空表单
+      formData.value = {};
     } else if (type == "update") {
       // console.log(data);
       dialogConfig.title = "编辑分类";
-      formData.value = JSON.parse(JSON.stringify(data));
+      formData.value = data;
     }
   });
 };

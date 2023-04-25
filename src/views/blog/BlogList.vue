@@ -8,7 +8,9 @@
             <el-form-item label="标题" prop="titleFuzzy">
               <el-input
                 v-model="searchformData.titleFuzzy"
+                clearable
                 placeholder="请输入名称"
+                @keyup.enter="loadDataList"
               >
               </el-input>
             </el-form-item>

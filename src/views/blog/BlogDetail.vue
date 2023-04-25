@@ -7,7 +7,7 @@
       :showCancel="false"
     >
       <div class="my_title">{{ blog.title }}</div>
-      <div v-html="blog.content"></div>
+      <div v-html="blog.content" class="blog-detail"></div>
     </Window>
   </div>
 </template>
@@ -53,7 +53,7 @@ const showDetail = async (blogId) => {
   if (!result) {
     return;
   }
-  console.log("@", result);
+  // console.log("@", result);
   blog.value = result.data;
   nextTick(() => {
     //高亮显示
@@ -71,5 +71,17 @@ defineExpose({ showDetail });
   font-size: 18px;
   font-family: serif;
   font-weight: 800;
+}
+
+.blog-detail {
+  blockquote {
+    padding: 0 1em;
+    color: #6a737d;
+    border-left: 0.25em solid #dfe2e5;
+  }
+
+  img {
+    max-width: 80%;
+  }
 }
 </style>

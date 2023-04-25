@@ -111,10 +111,10 @@ const topHeight = 60 + 20 + 30 + 46;
 const tableHeight = ref(
   props.options.tableHeight
     ? props.options.tableHeight
-    : window.innerHeight - topHeight - (props.options.extHeight || 0)
+    : window.innerHeight - topHeight - props.options.exHeight
 );
 // console.log(props.options);
-// console.log(props.options.extHeight);
+// console.log(props.options.exHeight);
 
 const dataTable = ref();
 
