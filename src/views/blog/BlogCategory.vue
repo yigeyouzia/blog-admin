@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-button type="danger" @click="showEdict('add')">新增分类</el-button>
+    <el-button type="danger" @click="showEdict('add')">新增专题</el-button>
     <Table
       :columns="columns"
       :showPagination="false"

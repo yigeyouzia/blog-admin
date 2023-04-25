@@ -15,6 +15,7 @@
             :dataSource="tableData"
             :fetch="loadDataList"
             :options="tableOptions"
+            @rowClick="rowClick"
           >
             <template #cover="{ row }">
               <!-- 图片 -->
@@ -47,6 +48,83 @@
             </div>
           </template>
         </el-card>
+        <div class="special-blog-tree">
+          <el-tree
+            class="tree-panel"
+            ref="refTree"
+            :data="blogList"
+            defaultExpandAll
+            node-key="blogId"
+            :expand-on-click-node="false"
+            :props="treeProps"
+            :highlight-current="true"
+            draggable
+            @node-drop="blogDrag"
+          >
+            <template #default="{ data }">
+              <span class="custom-node-style">
+                <span class="node-title">
+                  <span
+                    v-if="data.status == 0"
+                    :style="{ color: 'red', 'font-size': '13px' }"
+                  >
+                    {{ data.title }}</span
+                  >
+                  <span v-else :style="{ color: 'green', 'font-size': '13px' }">
+                    {{ data.title }}</span
+                  >
+                </span>
+                <span class="node-op">
+                  <template v-if="data.blogId === '0'">
+                    <a
+                      class="a-link"
+                      href="javascript:void(0)"
+                      @click="editBlog('add', data)"
+                      >新增文章</a
+                    >
+                  </template>
+                  <template v-else>
+                    <a
+                      class="a-link"
+                      href="javascript:void(0)"
+                      @click="showDetail(data)"
+                      >预览</a
+                    >
+                    <el-divider direction="vertical" />
+                    <a
+                      class="a-link"
+                      href="javascript:void(0)"
+                      @click="editBlog('edit', data)"
+                      v-if="
+                        userInfo.userId == data.userId || userInfo.roleType == 1
+                      "
+                      >修改</a
+                    >
+                    <span v-else>--</span>
+                    <el-divider direction="vertical" />
+                    <a
+                      class="a-link"
+                      href="javascript:void(0)"
+                      @click="delBlog(data)"
+                      v-if="
+                        userInfo.userId == data.userId || userInfo.roleType == 1
+                      "
+                      >删除</a
+                    >
+                    <span v-else>--</span>
+                    <el-divider direction="vertical" />
+                    <a
+                      class="a-link"
+                      href="javascript:void(0)"
+                      @click="editBlog('add', data)"
+                      >新增下级文章</a
+                    >
+                  </template>
+                </span>
+              </span>
+            </template>
+          </el-tree>
+        </div>
       </el-col>
     </el-row>
     <!-- form -->
@@ -87,6 +165,7 @@
 
 <script setup>
 import { getCurrentInstance, nextTick, reactive, ref } from "vue";
+import VueCookies from "vue-cookies";
 const { proxy } = getCurrentInstance();
 
 const api = {
@@ -97,6 +176,7 @@ const api = {
   delBlog: "/blog/recoveryBlog",
   updateSpecialBlogSort: "blog/updateSpecialBlogSort",
 };
+const userInfo = ref(VueCookies.get("userInfo") || {});
 
 const columns = [
   {
@@ -117,12 +197,12 @@ const columns = [
   {
     label: "博客数量",
     prop: "blogCount",
-    width: 100,
+    width: 90,
   },
   {
     label: "操作",
     prop: "op",
-    width: 200,
+    width: 150,
     scopedSlots: "op",
   },
 ];
@@ -244,6 +324,33 @@ const changeSort = async (index, dir) => {
   proxy.message.success("排列成功");
   loadDataList();
 };
+// 专题树
+// 获取专题文章
+const rowClick = (row) => {
+  console.log(row);
+  loadBlogList(row.categoryId);
+};
+const blogList = ref([]);
+const loadBlogList = async (categoryId) => {
+  let result = await proxy.Request({
+    url: api.getSpecialInfo,
+    params: {
+      categoryId: categoryId,
+      showType: "1",
+    },
+  });
+  // console.log(result)
+  blogList.value = result.data;
+};
+
+// 属性展示专题
+const treeProps = {
+  children: "children",
+  label: "title",
+  value: "blogId",
+};
+// 树拖拽排序
+const blogDrag = () => {};
 </script>
 
 <style lang="scss" scoped>
