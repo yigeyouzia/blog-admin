@@ -360,7 +360,41 @@ const treeProps = {
   value: "blogId",
 };
 // 树拖拽排序
-const blogDrag = () => {};
+//拖动改变排序，修改父级
+const blogDrag = async (draggingNode, dropNode, dropType, ev) => {
+  console.log(draggingNode, dropNode, dropType);
+  //拖入某个节点内，修改父级节点为目标节点，同时修改目标节点下的所有子节点的排序
+  let parentNode = null;
+  if (dropType == "inner") {
+    //拖入某个几点内，修改父级节点为目标节点，同时修改目标节点下的所有子节点的排序
+    parentNode = dropNode;
+  } else {
+    //拖入之前，之后，修改被拖动的节点的父节点为目标节点的父节点，同时修改目标节点父节点下所有的子节点的排序
+    parentNode = dropNode.parent;
+  }
+  //操作的节点ID
+  const blogId = draggingNode.data.blogId;
+  const pBlogId = parentNode.data.blogId;
+  //需要从新排序的博客ID
+  const blogIds = [];
+  parentNode.childNodes.forEach((element) => {
+    blogIds.push(element.data.blogId);
+  });
+  let params = {
+    blogId,
+    pBlogId,
+    blogIds: blogIds.join(","),
+  };
+  let result = await proxy.Request({
+    url: api.updateSpecialBlogSort,
+    params,
+  });
+  if (!result) {
+    return;
+  }
+  //重新加载文章树
+  loadBlogList();
+};
 // 保存专题博客回调
 const saveBlogCallback = () => {
   loadBlogList();
