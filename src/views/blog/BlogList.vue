@@ -223,13 +223,20 @@ const blogEditRef = ref(null);
 const showEdict = (type, data) => {
   blogEditRef.value.init(type, data); // 调用子组件方法
 };
-// 回收站
+
+// 展示详情
+const blogDetailRef = ref(null);
+const showDetail = (blogId) => {
+  // console.log(blogDetailRef.value);
+  blogDetailRef.value.showDetail(blogId);
+};
+// 删除
 const delBlog = (data) => {
   proxy.Confirm(`你确定要删除【${data.title}】吗？`, async () => {
     let result = await proxy.Request({
-      url: api.delBlog,
+      url: api.delCategory,
       params: {
-        blogId: data.blogId,
+        categoryId: data.categoryId,
       },
     });
     if (!result) {
@@ -237,13 +244,8 @@ const delBlog = (data) => {
     }
     loadDataList();
     proxy.message.success("删除成功");
+    currentCategoryId.value = null;
   });
-};
-// 展示详情
-const blogDetailRef = ref(null);
-const showDetail = (blogId) => {
-  // console.log(blogDetailRef.value);
-  blogDetailRef.value.showDetail(blogId);
 };
 </script>
 
