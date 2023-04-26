@@ -16,6 +16,7 @@
             :fetch="loadDataList"
             :options="tableOptions"
             @rowClick="rowClick"
+            ref="dataTableRef"
           >
             <template #cover="{ row }">
               <!-- 图片 -->
@@ -48,6 +49,7 @@
             </div>
           </template>
         </el-card>
+        <!-- tree -->
         <div class="special-blog-tree">
           <el-tree
             class="tree-panel"
@@ -211,6 +213,9 @@ const tableData = reactive({});
 const tableOptions = {
   exHeight: 130,
 };
+const dataTableRef = ref(null);
+// tree初始化
+const currentCategoryId = ref(null);
 const loadDataList = async () => {
   let result = await proxy.Request({
     url: api.loadDataList,
@@ -220,6 +225,15 @@ const loadDataList = async () => {
   }
   // console.log(result);
   Object.assign(tableData, result.data);
+  if (currentCategoryId.value == null && result.data.list.length > 0) {
+    currentCategoryId.value = result.data.list[0].categoryId;
+    loadBlogList();
+  }
+  // ui组件方法  选中
+  nextTick(() => {
+    dataTableRef.value.setCurrentRow("categoryId", currentCategoryId.value);
+  });
+  // loadDataList();
 };
 
 // 新增 修改
@@ -296,6 +310,7 @@ const del = (data) => {
     }
     loadDataList();
     proxy.message.success("删除成功");
+    currentCategoryId.value = null;
   });
 };
 // 排序 上下移
@@ -327,15 +342,17 @@ const changeSort = async (index, dir) => {
 // 专题树
 // 获取专题文章
 const rowClick = (row) => {
-  console.log(row);
-  loadBlogList(row.categoryId);
+  // console.log(row);
+  currentCategoryId.value = row.categoryId;
+  loadBlogList();
 };
 const blogList = ref([]);
-const loadBlogList = async (categoryId) => {
+const loadBlogList = async () => {
+  console.log(currentCategoryId.value);
   let result = await proxy.Request({
     url: api.getSpecialInfo,
     params: {
-      categoryId: categoryId,
+      categoryId: currentCategoryId.value,
       showType: "1",
     },
   });
