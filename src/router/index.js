@@ -37,8 +37,13 @@ const routes = [
                 path: '/special/list',
                 component: () => import('../views/special/SpecialList.vue'),
             },
+            {
+                name: '个人信息',
+                path: '/settings/my',
+                component: () => import('../views/settings/MyInfo.vue'),
+            },
         ]
-    }
+    },
 ]
 
 const router = createRouter({
