@@ -6,7 +6,7 @@
         <el-form-item prop="account">
           <el-input
             v-model="formData.account"
-            placeholder="请输入账号"
+            placeholder="请输入账�?"
             size="large"
           >
             <template #prefix>
@@ -18,7 +18,7 @@
           <el-input
             type="password"
             v-model="formData.password"
-            placeholder="请输入密码"
+            placeholder="请输入密�?"
             size="large"
             :prefix-icon="Lock"
           />
@@ -40,7 +40,7 @@
         </el-form-item>
         <el-form-item label="">
           <el-checkbox v-model="formData.rememberMe" :label="true"
-            >记住我</el-checkbox
+            >记住�?</el-checkbox
           >
         </el-form-item>
         <el-form-item label="">
@@ -83,7 +83,7 @@ const rules = {
   password: [
     {
       required: true,
-      message: "请输入密码",
+      message: "请输入密�?",
     },
   ],
   checkCode: [
@@ -126,15 +126,15 @@ const login = () => {
   background-size: cover;
   background-position: center;
   background-image: url(../assets/login-bg2.jpg);
-  opacity: 0.88; // 透明度
+  opacity: 0.88; // 透明�?
   .login-panel {
     float: right;
     margin-right: 100px;
     margin-top: 100px;
     padding: 20px;
     width: 350px;
-    background: rgb(255, 255, 255, 0.9); // 透明度
-    // 渐变色
+    background: rgb(255, 255, 255, 0.9); // 透明�?
+    // 渐变�?
     // background-image: linear-gradient(t o left right, #f23, #fefefe, #222);
     // background-image: linear-gradient(
     //   to right bottom,

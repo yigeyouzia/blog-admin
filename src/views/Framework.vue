@@ -20,7 +20,8 @@
             </template>
           </el-dropdown>
           <div class="avatar">
-            <img src="../assets/avatar.png" />
+            <!-- <img src="../assets/avatar.png" /> -->
+            <img :src="userInfo.avatar" />
           </div>
         </div>
       </el-header>

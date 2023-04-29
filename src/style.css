@@ -57,3 +57,9 @@ a.a-link {
 ::-webkit-scrollbar-corner {
   background: #bfbfbf;
 }
+
+/* img:hover {
+  border-radius: 50%;
+  animation:   2s all cubic-bezier(0.075, 0.82, 0.165, 1);
+  visibility: 0.7;
+} */

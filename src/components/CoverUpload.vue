@@ -46,6 +46,7 @@ const uploadImage = async (file) => {
   });
   const fileName = result.data.fileName;
   emit("update:modelValue", fileName);
+  // 修改头像回调
   emit("callback", fileName);
 };
 </script>

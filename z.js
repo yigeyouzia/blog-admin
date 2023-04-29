@@ -11,6 +11,13 @@
 
 (() => {
     'use strict'
-    $(".nav-search-input").value = 1
-
+    let tt = setInterval(() => {
+        var random1 = Math.random() * (15 - 10) + 10;
+        document.body.scrollTop += 1
+    }, 1000)
 })()
+
+let tt = setInterval(() => {
+    var random1 = Math.random() * (15 - 10) + 10;
+    document.documentElement.scrollTop += random1
+}, 1000)
