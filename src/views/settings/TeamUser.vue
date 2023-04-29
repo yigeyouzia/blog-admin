@@ -102,7 +102,7 @@
       :show="editDialogInfo.show"
       :title="editDialogInfo.title"
       :buttons="editDialogInfo.buttons"
-      :width="'50%'"
+      :width="'60%'"
       @close="editDialogInfo.show = false"
     >
       <el-form
@@ -168,13 +168,13 @@
         <el-row :gutter="10">
           <el-col :span="24">
             <el-form-item label="简介" prop="introduction">
-              <editor-html
+              <EditorHtml
                 id="introduction"
                 ref="introduction"
                 :height="300"
                 v-model="formData.introduction"
               >
-              </editor-html>
+              </EditorHtml>
             </el-form-item>
           </el-col>
         </el-row>
@@ -240,6 +240,7 @@ const columns = [
     scopedSlots: "operation",
   },
 ];
+
 const tableData = reactive({});
 const tableOptions = {
   exHeight: 50,
@@ -263,6 +264,42 @@ const loadDataList = async () => {
   Object.assign(tableData, result.data);
 };
 
+
+// 新增成员校验方法
+const validateRePass = (rule, value, callback) => {
+  if (value !== formData.value.password) {
+    callback(new Error(rule.message));
+  } else {
+    callback();
+  }
+}
+const rules = {
+  nickName: [{ required: true, message: "昵称不能为空" }],
+  editorType: [{ required: true, message: "请选择默认编辑器" }],
+  password: [
+    { required: true, message: "请输入密码" },
+    {
+      validator: proxy.Verify.password,
+      message: "密码最少8位，只能数字字母和特殊字符",
+    },
+  ],
+  rePassword: [
+    { required: true, message: "请再次输入密码" },
+    {
+      validator: validateRePass,
+      message: "两次输入的密码不一致",
+    },
+  ],
+  phone: [
+    { required: true, message: "请输入手机号" },
+    {
+      validator: proxy.Verify.phone,
+      trigger: "blur",
+      message: "请输入正确的手机号",
+    },
+  ],
+};
+}
 // 新增成员
 const formData = ref({});
 const editFormRef = ref();
@@ -317,8 +354,10 @@ const submitForm = () => {
     loadDataList();
   });
 };
+
+// 修改密码
+const showUpdatePassword = () => {};
 </script>
 
 <style lang="scss">
 </style>
-
