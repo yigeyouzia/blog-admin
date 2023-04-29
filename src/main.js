@@ -6,6 +6,7 @@ import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import "@/assets/icon/iconfont.css"
 import "@/assets/reset.css"
+import store from '@/store'
 
 import Request from '@/utils/Request'
 import message from '@/utils/Message'
@@ -23,6 +24,7 @@ import EditorHtml from "@/components/EditorHtml.vue"
 
 const app = createApp(App)
 app.use(router)
+app.use(store)
 app.use(ElementPlus)
 
 app.config.globalProperties.Request = Request

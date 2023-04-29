@@ -77,6 +77,8 @@
 import { getCurrentInstance, reactive, ref, watch } from "vue";
 import VueCookies from "vue-cookies";
 import { useRouter, useRoute } from "vue-router";
+import { useStore } from "vuex";
+const store = useStore();
 
 const api = {
   getUserInfo: "getUserInfo",
@@ -191,6 +193,16 @@ const logout = (data) => {
     router.push("/login");
   });
 };
+// 监听store
+watch(
+  () => store.state.userInfo,
+  (newVal, oldVal) => {
+    const avatar = proxy.globalInfo.imageUrl + newVal.avatar;
+    const nickName = newVal.nickName;
+    userInfo.value = { avatar, nickName };
+  }
+),
+  { immediate: true, deep: true };
 </script>
 
 <style lang="scss" scoped>

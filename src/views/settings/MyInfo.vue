@@ -88,6 +88,8 @@
 
 <script setup>
 import { getCurrentInstance, ref, reactive, nextTick } from "vue";
+import { useStore } from "vuex";
+const store = useStore();
 const { proxy } = getCurrentInstance();
 const api = {
   getUserInfo: "getUserInfo",
@@ -141,7 +143,7 @@ const getUserInfo = async () => {
     return;
   }
   formData.value = result.data;
-  console.log(formData.value);
+  // console.log(formData.value);
 };
 getUserInfo();
 
@@ -167,6 +169,11 @@ const saveMy = async () => {
       return;
     }
     proxy.message.success("保存成功");
+    // store commit
+    store.commit("updateUserInfo", {
+      nickName: formData.value.nickName,
+      avatar: formData.value.avatar,
+    });
   });
 };
 
@@ -182,6 +189,11 @@ const saveAvatar = async (avatar) => {
     return;
   }
   proxy.message.success("头像修改成功");
+  // store commit
+  store.commit("updateUserInfo", {
+    nickName: formData.value.nickName,
+    avatar: avatar,
+  });
 };
 
 // 修改密码
