@@ -14,8 +14,12 @@
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item>个人信息</el-dropdown-item>
-                <el-dropdown-item>退出</el-dropdown-item>
+                <el-dropdown-item>
+                  <router-link to="/settings/my" class="a-link"
+                    >个人信息</router-link
+                  >
+                </el-dropdown-item>
+                <el-dropdown-item @click="logout">退出</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -73,6 +77,11 @@
 import { getCurrentInstance, reactive, ref, watch } from "vue";
 import VueCookies from "vue-cookies";
 import { useRouter, useRoute } from "vue-router";
+
+const api = {
+  getUserInfo: "getUserInfo",
+  logout: "logout",
+};
 
 const router = useRouter();
 const route = useRoute();
@@ -144,9 +153,16 @@ const openClose = (index) => {
 
 const userInfo = ref({});
 
-const init = () => {
-  userInfo.value = VueCookies.get("userInfo");
-  userInfo.value.avatar = proxy.globalInfo.imageUrl + userInfo.value.avatar;
+const init = async () => {
+  let result = await proxy.Request({
+    url: api.getUserInfo,
+  });
+  if (!result) {
+    return;
+  }
+  userInfo.value = result.data;
+  userInfo.value.avatar = proxy.globalInfo.imageUrl + result.data.avatar;
+  // userInfo.value = VueCookies.get("userInfo");
   // console.log(userInfo);
   // console.log(userInfo.value.avatar);
 };
@@ -162,6 +178,19 @@ watch(
   },
   { immediate: true, deep: true }
 );
+// 退出
+// 删除
+const logout = (data) => {
+  proxy.Confirm(`你确定要退出吗`, async () => {
+    let result = await proxy.Request({
+      url: api.logout,
+    });
+    if (!result) {
+      return;
+    }
+    router.push("/login");
+  });
+};
 </script>
 
 <style lang="scss" scoped>
