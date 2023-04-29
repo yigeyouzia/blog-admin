@@ -126,7 +126,7 @@ const menuList = ref([
       },
       {
         title: "博客成员",
-        path: "/settings/user",
+        path: "/settings/teamUser",
       },
       {
         title: "系统设置",

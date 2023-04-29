@@ -42,6 +42,11 @@ const routes = [
                 path: '/settings/my',
                 component: () => import('../views/settings/MyInfo.vue'),
             },
+            {
+                name: '博客成员',
+                path: '/settings/teamUser',
+                component: () => import('../views/settings/TeamUser.vue'),
+            },
         ]
     },
 ]
