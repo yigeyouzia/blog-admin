@@ -177,6 +177,7 @@
       </el-form>
     </Dialog>
     <BlogEdit ref="blogEditRef" @callback="saveBlogCallback"></BlogEdit>
+    <BlogDetail ref="blogDetailRef"></BlogDetail>
   </div>
 </template>
 
@@ -184,6 +185,8 @@
 import { getCurrentInstance, nextTick, reactive, ref } from "vue";
 import VueCookies from "vue-cookies";
 import BlogEdit from "./BlogEdit.vue";
+import BlogDetail from "./BlogDetail.vue";
+
 const { proxy } = getCurrentInstance();
 
 const api = {
@@ -398,6 +401,12 @@ const blogDrag = async (draggingNode, dropNode, dropType, ev) => {
 // 保存专题博客回调
 const saveBlogCallback = () => {
   loadBlogList();
+};
+
+//详情
+const blogDetailRef = ref(null);
+const showDetail = (data) => {
+  blogDetailRef.value.showDetail(data);
 };
 </script>
 

@@ -264,7 +264,6 @@ const loadDataList = async () => {
   Object.assign(tableData, result.data);
 };
 
-
 // 新增成员校验方法
 const validateRePass = (rule, value, callback) => {
   if (value !== formData.value.password) {
@@ -272,7 +271,7 @@ const validateRePass = (rule, value, callback) => {
   } else {
     callback();
   }
-}
+};
 const rules = {
   nickName: [{ required: true, message: "昵称不能为空" }],
   editorType: [{ required: true, message: "请选择默认编辑器" }],
@@ -299,7 +298,6 @@ const rules = {
     },
   ],
 };
-}
 // 新增成员
 const formData = ref({});
 const editFormRef = ref();
@@ -351,6 +349,42 @@ const submitForm = () => {
     }
     editDialogInfo.show = false;
     proxy.message.success("保存成员成功");
+    loadDataList();
+  });
+};
+
+//修改状态
+const changeAccountStatus = (data) => {
+  console.log(1);
+  let status = data.status == 0 ? 1 : 0;
+  let statsuName = data.status == 0 ? "启用" : "禁用";
+  proxy.Confirm(`你确定要【${statsuName}】${data.nickName}`, async () => {
+    let result = await proxy.Request({
+      url: api.updateStatus,
+      params: {
+        userId: data.userId,
+        status: status,
+      },
+    });
+    if (!result) {
+      return;
+    }
+    loadDataList();
+  });
+};
+
+//删除
+const delUser = (data) => {
+  proxy.Confirm(`你确定要删除【${data.nickName}】`, async () => {
+    let result = await proxy.Request({
+      url: api.delUser,
+      params: {
+        userId: data.userId,
+      },
+    });
+    if (!result) {
+      return;
+    }
     loadDataList();
   });
 };
