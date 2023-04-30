@@ -180,6 +180,38 @@
         </el-row>
       </el-form>
     </Dialog>
+    <!-- 修改密码 -->
+    <Dialog
+      :show="dialogConfig.show"
+      :title="dialogConfig.title"
+      :buttons="dialogConfig.buttons"
+      width="400px"
+      @close="dialogConfig.show = false"
+    >
+      <el-form
+        :model="formData"
+        :rules="rules"
+        ref="passwordFormRef"
+        label-width="80px"
+      >
+        <el-form-item label="密码" prop="password">
+          <el-input
+            placeholder="请输入密码"
+            type="password"
+            v-model="formData.password"
+          >
+          </el-input>
+        </el-form-item>
+        <el-form-item label="重复密码" prop="rePassword">
+          <el-input
+            placeholder="请再次输入密码"
+            type="password"
+            v-model="formData.rePassword"
+          >
+          </el-input>
+        </el-form-item>
+      </el-form>
+    </Dialog>
   </div>
 </template>
 
@@ -390,7 +422,49 @@ const delUser = (data) => {
 };
 
 // 修改密码
-const showUpdatePassword = () => {};
+const passwordFormRef = ref(null);
+
+const dialogConfig = reactive({
+  show: false,
+  title: "修改密码",
+  buttons: [
+    {
+      type: "danger",
+      text: "确定",
+      click: (e) => {
+        submitPass();
+      },
+    },
+  ],
+});
+const showUpdatePassword = (userId) => {
+  dialogConfig.show = true;
+  nextTick(() => {
+    passwordFormRef.value.resetFields();
+    // formData.value = {};
+    formData.value = { userId: userId };
+  });
+};
+// 提交密码方法
+const submitPass = () => {
+  passwordFormRef.value.validate(async (valid) => {
+    if (!valid) {
+      return;
+    }
+    let result = await proxy.Request({
+      url: api.updatePassword,
+      params: {
+        userId: formData.value.userId,
+        password: formData.value.password,
+      },
+    });
+    if (!result) {
+      reutrn;
+    }
+    dialogConfig.show = false;
+    proxy.message.success("密码修改成功");
+  });
+};
 </script>
 
 <style lang="scss">
