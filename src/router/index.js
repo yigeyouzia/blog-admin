@@ -47,6 +47,15 @@ const routes = [
                 path: '/settings/teamUser',
                 component: () => import('../views/settings/TeamUser.vue'),
             },
+            {
+                name: "系统设置",
+                path: "/settings/sysInfo",
+                component: () => import('../views/settings/SysInfo.vue')
+            }, {
+                name: "回收站",
+                path: "/recovery/list",
+                component: () => import('../views/recovery/RecoveryList.vue')
+            }
         ]
     },
 ]

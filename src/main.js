@@ -7,6 +7,8 @@ import 'element-plus/dist/index.css'
 import "@/assets/icon/iconfont.css"
 import "@/assets/reset.css"
 import store from '@/store'
+import VueCookies from 'vue-cookies'
+
 
 import Request from '@/utils/Request'
 import message from '@/utils/Message'
@@ -31,6 +33,8 @@ app.config.globalProperties.Request = Request
 app.config.globalProperties.message = message
 app.config.globalProperties.Confirm = Confirm
 app.config.globalProperties.Verify = Verify
+app.config.globalProperties.VueCookies = VueCookies;
+
 app.config.globalProperties.globalInfo = {
     imageUrl: "/api/file/getImage/"
 }

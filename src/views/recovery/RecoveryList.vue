@@ -1,62 +1,31 @@
 <template>
-  <div>
-    <!-- 头部搜索 -->
+  <div class="body">
     <div class="top-panel">
-      <el-form :model="searchformData" label-width="50px">
-        <el-row :gutter="10">
-          <el-col :span="4">
-            <el-form-item label="标题" prop="titleFuzzy">
+      <el-form
+        @submit.prevent
+        :model="searchForm"
+        class="search-form"
+        labelAlign="left"
+      >
+        <el-row :gutter="5">
+          <el-col :span="5">
+            <el-form-item label="标题">
               <el-input
-                v-model="searchformData.titleFuzzy"
-                clearable
-                placeholder="请输入名称"
+                v-model="searchForm.titleFuzzy"
+                placeholder="支持模糊搜索"
                 @keyup.enter="loadDataList"
-              >
-              </el-input>
+                allowClear
+              />
             </el-form-item>
           </el-col>
-          <el-col :span="4">
-            <el-form-item label="状态" prop="status">
-              <el-select
-                v-model="searchformData.status"
-                clearable
-                placeholder="请选择状态"
-                :style="{ width: '100%' }"
-              >
-                <el-option :value="0" label="草稿"></el-option>
-                <el-option :value="1" label="已发布"></el-option>
-              </el-select>
+          <el-col :span="5">
+            <el-form-item>
+              <el-button type="danger" @click="loadDataList()">搜索</el-button>
             </el-form-item>
-          </el-col>
-          <el-col :span="4">
-            <el-form-item label="分类" prop="status">
-              <el-select
-                v-model="searchformData.categoryId"
-                class="m-2"
-                clearable
-                placeholder="请选择分类"
-                :style="{ width: '100%' }"
-              >
-                <el-option
-                  :label="item.categoryName"
-                  :value="item.categoryId"
-                  v-for="(item, index) in categoryList"
-                  :key="index"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="5" :style="{ 'padding-left': '10px' }">
-            <el-button type="danger" @click="loadDataList">搜索</el-button>
-            <el-button type="danger" @click="showEdict('add')"
-              >新增博客</el-button
-            >
           </el-col>
         </el-row>
       </el-form>
     </div>
-
-    <!-- 列表 -->
     <Table
       :columns="columns"
       :showPagination="true"
@@ -119,22 +88,17 @@
         </div>
       </template>
     </Table>
-    <!-- 新增博客 -->
-    <BlogEdit ref="blogEditRef" @callBack="loadDataList"></BlogEdit>
-    <BlogDetail ref="blogDetailRef"></BlogDetail>
   </div>
 </template>
 
 <script setup>
 import { getCurrentInstance, reactive, ref } from "vue";
-import BlogEdit from "./BlogEdit.vue";
-import BlogDetail from "./BlogDetail.vue";
 const { proxy } = getCurrentInstance();
 
 const api = {
-  loadCategory: "/category/loadAllCategory4Blog", // 博客分类
-  loadDataList: "/blog/loadBlog",
-  delBlog: "/blog/recoveryBlog",
+  loadDataList: "/blog/loadRecoveryList",
+  delBlog: "/blog/delBlog",
+  reductionBlog: "/blog/reductionBlog",
 };
 
 // 搜索
@@ -164,17 +128,6 @@ const columns = [
     scopedSlots: "blogInfo",
   },
   {
-    label: "编辑器",
-    prop: "editorTypeName",
-    width: 100,
-  },
-  {
-    label: "类型",
-    prop: "typeName",
-    width: 180,
-    scopedSlots: "typeName",
-  },
-  {
     label: "评论",
     prop: "allowCommentTypeName",
     width: 100,
@@ -198,10 +151,12 @@ const columns = [
     scopedSlots: "op",
   },
 ];
+const searchForm = reactive({});
 const tableData = reactive({});
 const tableOptions = {
   exHeight: 50,
 };
+// 加载数据
 const loadDataList = async () => {
   let params = {
     pageNo: tableData.pageNo,
@@ -210,7 +165,7 @@ const loadDataList = async () => {
   Object.assign(params, searchformData);
   let result = await proxy.Request({
     url: api.loadDataList,
-    params,
+    params: params,
   });
   if (!result) {
     return;
@@ -234,17 +189,17 @@ const showDetail = (blogId) => {
 const delBlog = (data) => {
   proxy.Confirm(`你确定要删除【${data.title}】吗？`, async () => {
     let result = await proxy.Request({
-      url: api.delBlog,
+      url: api.delCategory,
       params: {
-        blogId: data.blogId,
+        categoryId: data.categoryId,
       },
     });
-    // console.log(data.blogId);
     if (!result) {
       return;
     }
     loadDataList();
     proxy.message.success("删除成功");
+    currentCategoryId.value = null;
   });
 };
 </script>
