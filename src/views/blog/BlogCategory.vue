@@ -18,18 +18,29 @@
             href="javascript:void(0)"
             class="a-link"
             @click="showEdict('update', row)"
+            v-if="userInfo.userId == row.userId"
             >修改</a
           >
+          <span v-else>--</span>
           <el-divider direction="vertical" />
-          <a href="javascript:void(0)" class="a-link" @click="del(row)">删除</a>
+          <a
+            href="javascript:void(0)"
+            class="a-link"
+            @click="del(row)"
+            v-if="userInfo.userId == row.userId"
+            >删除</a
+          >
+          <span v-else>--</span>
           <el-divider direction="vertical" />
           <!-- 如果是第一个 不能上移 not-allow -->
           <a
             href="javascript:void(0)"
             :class="[index == 0 ? 'not-allow' : 'a-link']"
             @click="changeSort(index, 'up')"
+            v-if="userInfo.userId == row.userId"
             >上移</a
           >
+          <span v-else>--</span>
           <el-divider direction="vertical" />
           <a
             href="javascript:void(0)"
@@ -37,8 +48,10 @@
               index == tableData.list.length - 1 ? 'not-allow' : 'a-link',
             ]"
             @click="changeSort(index, 'down')"
+            v-if="userInfo.userId == row.userId"
             >下移</a
           >
+          <span v-else>--</span>
         </div>
       </template>
     </Table>
@@ -88,6 +101,7 @@ const api = {
   delCategory: "/category/delCategory4Blog",
   changeSort: "/category/changeCategorySort4Blog",
 };
+const userInfo = ref(proxy.VueCookies.get("userInfo") || {});
 
 const columns = [
   {
