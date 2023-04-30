@@ -39,11 +39,14 @@
       </template>
       <!-- 文章信息 -->
       <template #blogInfo="{ row }">
-        <div class="blogInfo">
-          <div>标题：{{ row.title }}</div>
-          <div>分类：{{ row.categoryName }}</div>
-          <div>作者：{{ row.nickName }}</div>
+        <div>标题：{{ row.title }}</div>
+        <div>
+          文章类型：{{ row.blogType == 0 ? "博客" : "专题" }}
+          <el-divider direction="vertical" />
+          <span>{{ row.blogType == 0 ? "分类" : "专题" }}</span
+          >：{{ row.categoryName || "--" }}
         </div>
+        <div>作者：{{ row.nickName }}</div>
       </template>
       <!-- 文章类型 -->
       <template #typeName="{ row }">
@@ -65,34 +68,40 @@
         <div>创建时间：{{ row.createTime }}</div>
         <div>更新时间：{{ row.lastUpdateTime }}</div>
       </template>
+      <!-- 操作 -->
       <template #op="{ row }">
-        <div class="op">
-          <a
-            href="javascript:void(0)"
-            class="a-link"
-            @click="showEdict('update', row)"
-            >修改</a
-          >
-          <el-divider direction="vertical" />
-          <a href="javascript:void(0)" class="a-link" @click="delBlog(row)"
-            >删除</a
-          >
-          <el-divider direction="vertical" />
-          <!-- 如果是第一个 不能上移 not-allow -->
-          <a
-            href="javascript:void(0)"
-            class="a-link"
-            @click="showDetail(row.blogId)"
-            >预览</a
-          >
-        </div>
+        <template
+          v-if="row.userId == userInfo.userId || userInfo.roleType == 1"
+        >
+          <div class="op">
+            <a
+              class="a-link"
+              href="javascript:void(0)"
+              @click="reductionBlog(row)"
+              v-if="userInfo.userId == row.userId"
+              >还原</a
+            >
+            <span v-else>--</span>
+            <el-divider direction="vertical" />
+            <a
+              class="a-link"
+              href="javascript:void(0)"
+              @click="delBlog(row)"
+              v-if="userInfo.userId == row.userId"
+              >删除</a
+            >
+          </div>
+        </template>
+        <span v-else>--</span>
       </template>
     </Table>
   </div>
 </template>
 
 <script setup>
-import { getCurrentInstance, reactive, ref } from "vue";
+import { ref, reactive, getCurrentInstance } from "vue";
+import { useRouter } from "vue-router";
+const router = useRouter();
 const { proxy } = getCurrentInstance();
 
 const api = {
@@ -100,19 +109,10 @@ const api = {
   delBlog: "/blog/delBlog",
   reductionBlog: "/blog/reductionBlog",
 };
-
+const userInfo = ref(proxy.VueCookies.get("userInfo") || {});
 // 搜索
 const searchformData = reactive({});
 const categoryList = ref();
-
-const loadCategoryList = async () => {
-  let result = await proxy.Request({
-    url: api.loadCategory,
-  });
-  // console.log(result);
-  categoryList.value = result.data;
-};
-loadCategoryList();
 
 //列表
 const columns = [
@@ -126,6 +126,11 @@ const columns = [
     label: "文章信息",
     prop: "blogInfo",
     scopedSlots: "blogInfo",
+  },
+  {
+    label: "编辑器",
+    prop: "editorTypeName",
+    width: 100,
   },
   {
     label: "评论",
@@ -158,11 +163,12 @@ const tableOptions = {
 };
 // 加载数据
 const loadDataList = async () => {
+  console.log(userInfo);
   let params = {
     pageNo: tableData.pageNo,
     pageSize: tableData.pageSize,
   };
-  Object.assign(params, searchformData);
+  Object.assign(params, searchForm);
   let result = await proxy.Request({
     url: api.loadDataList,
     params: params,
@@ -173,34 +179,41 @@ const loadDataList = async () => {
   // console.log(result);
   Object.assign(tableData, result.data);
 };
-// 新增博客
-const blogEditRef = ref(null);
-const showEdict = (type, data) => {
-  blogEditRef.value.init(type, data); // 调用子组件方法
-};
-
-// 展示详情
-const blogDetailRef = ref(null);
-const showDetail = (blogId) => {
-  // console.log(blogDetailRef.value);
-  blogDetailRef.value.showDetail(blogId);
-};
-// 删除
+//删除
 const delBlog = (data) => {
-  proxy.Confirm(`你确定要删除【${data.title}】吗？`, async () => {
+  proxy.Confirm(`确认要删除【${data.title}】吗，删除后无法找回？`, async () => {
     let result = await proxy.Request({
-      url: api.delCategory,
+      url: api.delBlog,
       params: {
-        categoryId: data.categoryId,
+        blogId: data.blogId,
       },
     });
     if (!result) {
       return;
     }
-    loadDataList();
     proxy.message.success("删除成功");
-    currentCategoryId.value = null;
+    loadDataList();
   });
+};
+
+//恢复博客
+const reductionBlog = (data) => {
+  proxy.Confirm(
+    `确认要恢复【${data.title}】吗？恢复后博客为草稿状态。`,
+    async () => {
+      let result = await proxy.Request({
+        url: api.reductionBlog,
+        params: {
+          blogId: data.blogId,
+        },
+      });
+      if (!result) {
+        return;
+      }
+      proxy.message.success("恢复成功");
+      loadDataList();
+    }
+  );
 };
 </script>
 
